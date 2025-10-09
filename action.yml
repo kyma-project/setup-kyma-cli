@@ -10,7 +10,8 @@ inputs:
     default: ""
   token:
     description: "Token to access GitHub API"
-    required: true
+    required: false
+    default: "${{ github.token }}"
   force:
     description: "Skip cache and force reinstallation"
     required: false
