@@ -2,8 +2,9 @@ name: "Setup Kyma CLI"
 description: "The action setups Kyma CLI."
 inputs:
   version:
-    description: "Version of Kyma CLI to use"
+    description: "Version of Kyma CLI to use (e.g '3.1.0', 'latest', 'stable', 'nightly')"
     required: false
+    default: "latest"
   target-dir:
     description: "Directory to install Kyma CLI to"
     required: false
@@ -24,12 +25,22 @@ runs:
       shell: bash
       run: |
         KYMA_CLI_VERSION="${{ inputs.version }}"
-        if [[ -z "${KYMA_CLI_VERSION}" ]]; then
+
+        if [[ -z "${KYMA_CLI_VERSION}" || "${KYMA_CLI_VERSION}" == "latest" ]]; then
           KYMA_CLI_VERSION="$(gh release list --repo kyma-project/cli --json name,isLatest --jq '.[] | select(.isLatest)|.name')"
+        elif [[ "${KYMA_CLI_VERSION}" == "stable" ]]; then
+          KYMA_CLI_VERSION="$(gh release list --repo kyma-project/cli --json name,isLatest --jq '.[] | select(.isLatest)|select(.isPrerelease|not)|.name')"
+        elif [[ "${KYMA_CLI_VERSION}" == "nightly" ]]; then
+          KYMA_CLI_VERSION="0.0.0-dev"
         fi
         echo "kyma_cli_version=${KYMA_CLI_VERSION}" >> $GITHUB_OUTPUT
 
         ARCH="$(uname -m)"
+        if [ "${ARCH}" = "amd64" ]; then
+            ARCH="x86_64"
+        elif [ "${ARCH}" = "aarch64" ]; then
+            ARCH="arm64"
+        fi
         echo "kyma_cli_arch=${ARCH}" >> $GITHUB_OUTPUT
 
         OS="$(uname -s)"
@@ -69,8 +80,6 @@ runs:
         set -e
 
         KYMA_CLI_VERSION="${{ steps.calculate.outputs.kyma_cli_version }}"
-
-        ARCH="$(uname -m)"
 
         OS="$(uname -s)"
         # if OS contains MINGW prefix ten change OS to Windows
@@ -113,6 +122,7 @@ runs:
         GITHUB_TOKEN: ${{ inputs.token }}
         KYMA_CLI_VERSION: ${{ steps.calculate.outputs.kyma_cli_version }}
         TARGET_PATH: ${{ steps.calculate.outputs.kyma_cli_path }}
+        ARCH: ${{ steps.calculate.outputs.kyma_cli_arch }}
 branding:
   icon: "download"
   color: "blue"
