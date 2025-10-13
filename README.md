@@ -14,6 +14,7 @@ Setup Kyma CLI is an GitHub Action that installs [Kyma CLI](https://github.com/k
 This action downloads the Kyma CLI binary, and caches the result.
 
 This action can be used in a GitHub Actions workflow file as follows:
+
 ```yaml
 - uses: kyma-project/setup-kyma-cli@v1
   with:
