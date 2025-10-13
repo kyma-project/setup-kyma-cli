@@ -1,0 +1,49 @@
+name: Smoke test
+
+on:
+  push:
+    branches:
+      - main
+      - release-*
+  pull_request:
+    branches:
+      - main
+      - release-*
+
+jobs:
+  basic:
+    name: "Smoke test on ${{ matrix.os }}"
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./
+        with:
+          force: "true"
+      - name: Check installation
+        run: "kyma version"
+  version:
+    name: "Install specific cli version"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./
+        with:
+          version: "3.1.2"
+          force: "true"
+      - name: Check installation
+        run: "kyma version"
+  target:
+    name: "Install cli to custom path"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./
+        with:
+          target-dir: /tmp/kyma-cli
+          force: "true"
+      - name: Check installation
+        run: "/tmp/kyma-cli/kyma version"
