@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - release-*
+      - smoke-test
   pull_request:
     branches:
       - main
