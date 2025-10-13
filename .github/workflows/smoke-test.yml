@@ -24,7 +24,7 @@ jobs:
         with:
           force: "true"
       - name: Check installation
-        run: "/tmp/kyma-cli/kyma version"
+        run: "kyma version"
   version:
     name: "Install specific cli version"
     runs-on: ubuntu-latest
