@@ -23,6 +23,8 @@ jobs:
       - uses: ./
         with:
           force: "true"
+      - name: Check installation
+        run: "/tmp/kyma-cli/kyma version"
   version:
     name: "Install specific cli version"
     runs-on: ubuntu-latest
@@ -32,6 +34,8 @@ jobs:
         with:
           version: "3.1.2"
           force: "true"
+      - name: Check installation
+        run: "kyma version"
   target:
     name: "Install cli to custom path"
     runs-on: ubuntu-latest
