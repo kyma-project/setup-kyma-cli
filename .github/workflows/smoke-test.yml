@@ -20,19 +20,19 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: ./action.yml
+      - uses: ./
   version:
     name: "Install specific cli version"
     runs-on: ubuntu-latest
     steps:
-      - uses: ./action.yml
+      - uses: ./
         with:
           version: 3.1.2"
   target:
     name: "Install cli to custom path"
     runs-on: ubuntu-latest
     steps:
-      - uses: ./action.yml
+      - uses: ./
         with:
           target-dir: /tmp/kyma-cli
       - name: Check installation
