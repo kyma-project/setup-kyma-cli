@@ -25,8 +25,8 @@ This action can be used in a GitHub Actions workflow file as follows:
 
 ### `version`
 
-Version of the Kyma CLi to download.
-By default the action downloads the latest CLI version, including prereleases.
+Version of the Kyma CLI to download.
+By default, the action downloads the latest CLI version, including prereleases.
 Version can be set to either the version number, or one of the following special values:
 
 * `latest` (default) – downloads the latest version.
@@ -36,8 +36,8 @@ Version can be set to either the version number, or one of the following special
 ### `target-dir`
 
 Name of the target directory where to install the Kyma CLI.
-On Linux and Mac OS runners the default is `~/.local/bin`.
-On Windows runners the default is `C:\vcpkg`.
+On Linux and Mac OS runners, the default is `~/.local/bin`.
+On Windows runners, the default is `C:\vcpkg`.
 
 ### `token`
 
