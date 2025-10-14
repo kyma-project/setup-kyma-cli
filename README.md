@@ -31,7 +31,7 @@ Version can be set to either the version number, or one of the following special
 
 * `latest` (default) – downloads the latest version.
 * `stable` – downloads the latest stable version.
-* `nightly` – downloads the` 0.0.0-dev` version, build everyday.
+* `nightly` – downloads the `0.0.0-dev` version, build everyday.
 
 ### `target-dir`
 
