@@ -1,5 +1,5 @@
 name: "Setup Kyma CLI"
-description: "The action setups Kyma CLI."
+description: "The action setups Kyma CLI (Usable with SAP BTP, Kyma environment)."
 inputs:
   version:
     description: "Version of Kyma CLI to use (e.g '3.1.0', 'latest', 'stable', 'nightly')"
