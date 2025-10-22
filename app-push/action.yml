@@ -1,0 +1,234 @@
+name: "App push"
+description: "Setup Kyma CLI in a container environment"
+inputs:
+  #cluster authentication
+  kubeconfig:
+    description: "Base64 encoded input kubeconfig data"
+    required: false
+
+  # basic configuration
+  namespace:
+    description: "Target namespace"
+    required: false
+    default: "default"
+  name:
+    description: "App/Deployment name"
+    required: true
+  quiet:
+    description: "Suppresses non-essential output (prints only the URL of the pushed app, if exposed)"
+    required: false
+    default: "false"
+
+  # code/image configuration
+  image:
+    description: "Pre-built image reference. Used if code-path or dockerfile not provided."
+    required: false
+  image-pull-secret:
+    description: "Name of the Kubernetes Secret with credentials to pull the image"
+    required: false
+  code-path:
+    description: "Path to app sources to build/push via kyma app push. Requires Docker Registry module."
+    required: false
+  dockerfile:
+    description: "Custom Dockerfile path (if using Docker build path in kyma CLI)."
+    required: false
+  # array separated by semicolon
+  dockerfile-build-arg:
+    description: "Variables used while building an application from Dockerfile as args, separated by semicolon (key=value;key2=value2)."
+    required: false
+  dockerfile-context:
+    description: "Context path for building Dockerfile (defaults to the current working directory)"
+    required: false
+  # istio and networking
+  expose:
+    description: "Expose app via APIRule"
+    required: false
+    default: "false"
+  istio-inject:
+    description: "Enable Istio sidecar injection"
+    required: false
+    default: "false"
+  container-port:
+    description: "Port on which the application is exposed"
+    required: false
+  # mounts and env vars, all of these are arrays separated by semicolon
+  mount-config:
+    description: "Mount ConfigMap content to the /bindings/configmap-<CONFIGMAP_NAME> path"
+    required: false
+  mount-secret:
+    description: "Mount Secret content to the /bindings/secret-<SECRET_NAME> path"
+    required: false
+  env:
+    description: "Environment variables for the app in format NAME=VALUE (semicolon separated)"
+    required: false
+  env-from-configmap:
+    description: "Environment variables for the app loaded from a ConfigMap in format ENV_NAME=RESOURCE:RESOURCE_KEY for a single key or RESOURCE[:ENVS_PREFIX] to fetch all keys"
+    required: false
+  env-from-file:
+    description: "Environment variables for the app loaded from a file in format ENV_NAME=FILE_PATH:FILE_KEY for a single key or FILE_PATH[:ENVS_PREFIX] to fetch all keys"
+    required: false
+  env-from-secret:
+    description: "Environment variables for the app loaded from a Secret in format ENV_NAME=RESOURCE:RESOURCE_KEY for a single key or RESOURCE[:ENVS_PREFIX] to fetch all keys"
+    required: false
+  # various
+  insecure:
+    description: "Disables SecurityContext configuration for the app deployment"
+    required: false
+  # array separated by semicolon
+  mount-service-binding-secret:
+    description: "Mounts Secret, separated by semicolons, as service binding at /bindings/secret-<NAME> (readOnly)"
+    required: false
+outputs:
+  url:
+    # from APIRule or VirtualService
+    description: "The resolved HTTPS URL of the deployed app"
+    value: "${{ steps.app-push.outputs.url}}"
+runs:
+  using: composite
+  steps:
+    - name: "run kyma app push"
+      shell: bash
+      id: app-push
+      run: |
+        echo "${KUBECONFIG}" > "input_kubeconfig.yaml"
+        kubeconfig_path="action_kubeconfig.yaml"
+        if [[ -n "${KUBECONFIG}" ]]; then
+          kubeconfig_path="input_kubeconfig.yaml"
+        fi
+        export KUBECONFIG="${kubeconfig_path}"
+
+        push_flags=()
+        # basic configuration
+        push_flags+=("--name" "${NAME}")
+         if [[ -n "${NAMESPACE}" ]]; then
+          push_flags+=("--namespace" "${NAMESPACE}")
+        fi
+        if [[ "${QUIET}" == "true" ]]; then
+          push_flags+=("--quiet")
+        fi
+
+        # code/image configuration
+        if [[ -n "${IMAGE}" ]]; then
+          push_flags+=("--image" "${IMAGE}")
+        fi
+        if [[ -n "${IMAGE_PULL_SECRET}" ]]; then
+          push_flags+=("--image-pull-secret" "${IMAGE_PULL_SECRET}")
+        fi
+        if [[ -n "${CODE_PATH}" ]]; then
+          push_flags+=("--code-path" "${CODE_PATH}")
+        fi
+        if [[ -n "${DOCKERFILE}" ]]; then
+          push_flags+=("--dockerfile" "${DOCKERFILE}")
+        fi
+        if [[ -n "${DOCKERFILE_BUILD_ARGS}" ]]; then
+          IFS=';' read -r -a build_args_array <<< "${DOCKERFILE_BUILD_ARGS}"
+          for arg in "${build_args_array[@]}"; do
+            push_flags+=("--dockerfile-build-arg" "${arg}")
+          done
+        fi
+        if [[ -n "${DOCKERFILE_CONTEXT}" ]]; then
+          push_flags+=("--dockerfile-context" "${DOCKERFILE_CONTEXT}")
+        fi
+        # istio and networking
+        if [[ "${EXPOSE}" == "true" ]]; then
+          push_flags+=("--expose")
+        fi
+        if [[ -n "${ISTIO_INJECT}" ]]; then
+          push_flags+=("--istio-inject" "${ISTIO_INJECT}")
+        fi
+        if [[ -n "${CONTAINER_PORT}" ]]; then
+          push_flags+=("--container-port" "${CONTAINER_PORT}")
+        fi
+        # mounts and env vars
+        if [[ -n "${MOUNT_CONFIG}" ]]; then
+          IFS=';' read -r -a mount_config_array <<< "${MOUNT_CONFIG}"
+          for cm in "${mount_config_array[@]}"; do
+            push_flags+=("--mount-config" "${cm}")
+          done
+        fi
+        if [[ -n "${MOUNT_SECRET}" ]]; then
+          IFS=';' read -r -a mount_secret_array <<< "${MOUNT_SECRET}"
+          for sec in "${mount_secret_array[@]}"; do
+            push_flags+=("--mount-secret" "${sec}")
+          done
+        fi
+        if [[ -n "${ENV}" ]]; then
+          IFS=';' read -r -a env_array <<< "${ENV}"
+          for env_var in "${env_array[@]}"; do
+            push_flags+=("--env" "${env_var}")
+          done
+        fi
+        if [[ -n "${ENV_FROM_CONFIGMAP}" ]]; then
+          IFS=';' read -r -a env_from_cm_array <<< "${ENV_FROM_CONFIGMAP}"
+          for env_from_cm in "${env_from_cm_array[@]}"; do
+            push_flags+=("--env-from-configmap" "${env_from_cm}")
+          done
+        fi
+        if [[ -n "${ENV_FROM_FILE}" ]]; then
+          IFS=';' read -r -a env_from_file_array <<< "${ENV_FROM_FILE}"
+          for env_from_file in "${env_from_file_array[@]}"; do
+            push_flags+=("--env-from-file" "${env_from_file}")
+          done
+        fi
+        if [[ -n "${ENV_FROM_SECRET}" ]]; then
+          IFS=';' read -r -a env_from_secret_array <<< "${ENV_FROM_SECRET}"
+          for env_from_secret in "${env_from_secret_array[@]}"; do
+            push_flags+=("--env-from-secret" "${env_from_secret}")
+          done
+        fi
+        # various
+        if [[ "${INSECURE}" == "true" ]]; then
+          push_flags+=("--insecure")
+        fi
+        if [[ -n "${MOUNT_SERVICE_BINDING_SECRET}" ]]; then
+          IFS=';' read -r -a mount_service_binding_secret_array <<< "${MOUNT_SERVICE_BINDING_SECRET}"
+          for msbsec in "${mount_service_binding_secret_array[@]}"; do
+            push_flags+=("--mount-service-binding-secret" "${msbsec}")
+          done
+
+        fi
+        echo "Running: kyma app push --kubeconfig ${kubeconfig_path} ${push_flags[*]}"
+
+        kyma app push --kubeconfig "${kubeconfig_path}" "${push_flags[@]}"
+        # TODO: app push doesn't return newline
+        echo ""
+
+        # get URL from APIrule/virtualService
+        virtualservice_url=""
+        if [[ "${EXPOSE}" == "true" ]]; then
+          kubectl wait --for=jsonpath='{.spec.hosts}' virtualservices.networking.istio.io -l "apirule.gateway.kyma-project.io/v1beta1=${NAME}.${NAMESPACE}" -n "${NAMESPACE}"
+          virtualservice_url="$(kubectl get virtualservices.networking.istio.io  -n "${NAMESPACE}" -l "apirule.gateway.kyma-project.io/v1beta1=${NAME}.${NAMESPACE}" -o "jsonpath={.items[0].spec.hosts[]}")"
+          echo "url=${virtualservice_url}" >> $GITHUB_OUTPUT
+
+          echo "# Application deployed :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "App URL: [https://${virtualservice_url}](https://${virtualservice_url}) " >> $GITHUB_STEP_SUMMARY
+        fi
+
+        rm "${kubeconfig_path}"
+      env:
+        KUBECONFIG: "${{ inputs.kubeconfig }}"
+        #basic configuration
+        NAMESPACE: "${{ inputs.namespace }}"
+        NAME: "${{ inputs.name }}"
+        QUIET: "${{ inputs.quiet }}"
+        #code/image configuration
+        IMAGE: "${{ inputs.image }}"
+        IMAGE_PULL_SECRET: "${{ inputs.image-pull-secret }}"
+        CODE_PATH: "${{ inputs.code-path }}"
+        DOCKERFILE: "${{ inputs.dockerfile }}"
+        DOCKERFILE_BUILD_ARGS: "${{ inputs.dockerfile-build-arg }}"
+        DOCKERFILE_CONTEXT: "${{ inputs.dockerfile-context }}"
+        #istio and networking
+        EXPOSE: "${{ inputs.expose }}"
+        ISTIO_INJECT: "${{ inputs.istio-inject }}"
+        CONTAINER_PORT: "${{ inputs.container-port }}"
+        #mounts and env vars
+        MOUNT_CONFIG: "${{ inputs.mount-config }}"
+        MOUNT_SECRET: "${{ inputs.mount-secret }}"
+        ENV: "${{ inputs.env }}"
+        ENV_FROM_CONFIGMAP: "${{ inputs.env-from-configmap }}"
+        ENV_FROM_FILE: "${{ inputs.env-from-file }}"
+        ENV_FROM_SECRET: "${{ inputs.env-from-secret }}"
+        #various
+        INSECURE: "${{ inputs.insecure }}"
+        MOUNT_SERVICE_BINDING_SECRET: "${{ inputs.mount-service-binding-secret }}"

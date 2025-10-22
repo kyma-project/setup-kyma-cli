@@ -1,0 +1,81 @@
+name: "Test of app-push"
+on:
+  push:
+    branches:
+      - main
+      - release-*
+  pull_request_target:
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+      - name: "get Kyma cli"
+        uses: ./
+        with:
+          version: nightly
+      - name: "get kubeconfig"
+        id: oidc
+        uses: ./kubeconfig
+        with:
+          audience: "kyma-cli"
+          api-server-url: "${{ secrets.SERVER }}"
+          ca-crt: "${{ secrets.CA_CRT }}"
+      - name: "generate unique deployment name"
+        id: name
+        shell: bash
+        run: |
+          echo "name=test-app-$(date +%s)" >> $GITHUB_OUTPUT
+          echo "${KUBECONFIG_RAW}" > kubeconfig.yaml
+          export KUBECONFIG="${PWD}/kubeconfig.yaml"
+          kubectl get pods -n setup-kyma-cli
+        env:
+          KUBECONFIG_RAW: "${{ steps.oidc.outputs.kubeconfig }}"
+      - name: "run"
+        id: app-push
+        uses: ./app-push
+        with:
+          kubeconfig: "${{ steps.oidc.outputs.kubeconfig }}"
+          name: "${{ steps.name.outputs.name }}"
+          namespace: "setup-kyma-cli"
+          image: "kennethreitz/httpbin"
+          expose: "true"
+          istio-inject: "true"
+          container-port: 80
+      - name: "URL"
+        shell: bash
+        run: |
+          echo "App URL: ${APP_URL}"
+        env:
+          APP_URL: ${{ steps.app-push.outputs.url }}
+      - name: "Verify app"
+        shell: bash
+        run: |
+          set -e
+          curl "${APP_URL}"
+        env:
+          APP_URL: ${{ steps.app-push.outputs.url }}
+
+      - name: "cleanup"
+        shell: bash
+        if: always()
+        run: |
+          echo "Cleanup app"
+          echo "${KUBECONFIG_RAW}" > kubeconfig.yaml
+          export KUBECONFIG="${PWD}/kubeconfig.yaml"
+
+          kubectl delete deployments ${NAME} --namespace ${NAMESPACE} || true
+          kubectl delete apirules.gateway.kyma-project.io ${NAME} --namespace ${NAMESPACE} || true
+          kubectl delete services ${NAME} --namespace ${NAMESPACE} || true
+        env:
+          NAME: "${{ steps.name.outputs.name }}"
+          NAMESPACE: "setup-kyma-cli"
+          KUBECONFIG_RAW: "${{ steps.oidc.outputs.kubeconfig }}"
