@@ -103,6 +103,7 @@ runs:
           mkdir -p "${TARGET_PATH%/kyma.exe}"
           mv "${CLI_TMPDIR}/kyma.exe" "${TARGET_PATH}"
           rm -r "${CLI_TMPDIR}"
+          echo "${TARGET_PATH%/kyma.exe}" >> $GITHUB_PATH
           echo "Installed $(kyma version) to $(readlink -f "${TARGET_PATH}")"
           exit 0
         fi
@@ -117,6 +118,7 @@ runs:
         mv kyma "${TARGET_PATH}"
         rm -r "${CLI_TMPDIR}"
 
+        echo "${TARGET_PATH%/kyma}" >> $GITHUB_PATH   
         echo "Installed $(kyma version) to $(readlink -f "${TARGET_PATH}")"
       env:
         GITHUB_TOKEN: ${{ inputs.token }}
