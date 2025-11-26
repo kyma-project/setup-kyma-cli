@@ -19,7 +19,7 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./
         with:
           force: "true"
@@ -29,7 +29,7 @@ jobs:
     name: "Install specific cli version"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./
         with:
           version: "3.1.2"
@@ -40,7 +40,7 @@ jobs:
     name: "Install cli to custom path"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./
         with:
           target-dir: /tmp/kyma-cli
