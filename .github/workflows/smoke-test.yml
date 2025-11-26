@@ -46,4 +46,4 @@ jobs:
           target-dir: /tmp/kyma-cli
           force: "true"
       - name: Check installation
-        run: "/tmp/kyma-cli/kyma version"
+        run: "kyma version"
