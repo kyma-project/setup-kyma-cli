@@ -22,11 +22,6 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: "get Kyma CLI"
-      uses: ./
-      with:
-        # TODO: remove this after a new version (3.3.0) is released
-        version: "nightly"
     - name: "get OIDC kubeconfig"
       id: oidc
       if: ${{ inputs.kubeconfig == '' }}
