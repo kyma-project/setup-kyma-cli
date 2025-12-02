@@ -82,7 +82,7 @@ runs:
         KYMA_CLI_VERSION="${{ steps.calculate.outputs.kyma_cli_version }}"
 
         OS="$(uname -s)"
-        # if OS contains MINGW prefix ten change OS to Windows
+        # if OS contains MINGW prefix then change OS to Windows
         if [[ "${OS}" =~ MINGW* ]]; then
           OS="Windows"
         fi
@@ -103,7 +103,6 @@ runs:
           mkdir -p "${TARGET_PATH%/kyma.exe}"
           mv "${CLI_TMPDIR}/kyma.exe" "${TARGET_PATH}"
           rm -r "${CLI_TMPDIR}"
-          echo "${TARGET_PATH%/kyma.exe}" >> $GITHUB_PATH
           echo "Installed $(${TARGET_PATH} version) to $(readlink -f "${TARGET_PATH}")"
           exit 0
         fi
@@ -117,14 +116,29 @@ runs:
         mkdir -p "${TARGET_PATH%/kyma}"
         mv kyma "${TARGET_PATH}"
         rm -r "${CLI_TMPDIR}"
-
-        echo "${TARGET_PATH%/kyma}" >> $GITHUB_PATH   
         echo "Installed $(${TARGET_PATH} version) to $(readlink -f "${TARGET_PATH}")"
       env:
         GITHUB_TOKEN: ${{ inputs.token }}
         KYMA_CLI_VERSION: ${{ steps.calculate.outputs.kyma_cli_version }}
         TARGET_PATH: ${{ steps.calculate.outputs.kyma_cli_path }}
         ARCH: ${{ steps.calculate.outputs.kyma_cli_arch }}
+    - name: "adjust PATH"
+      if: always()
+      shell: bash
+      run: |
+        OS="$(uname -s)"
+        # if OS contains MINGW prefix then change OS to Windows
+        if [[ "${OS}" =~ MINGW* ]]; then
+          OS="Windows"
+        fi
+
+        if [[ "${OS}" == "Windows" ]]; then
+          echo "${TARGET_PATH%/kyma.exe}" >> $GITHUB_PATH
+        else
+          echo "${TARGET_PATH%/kyma}" >> $GITHUB_PATH
+        fi
+      env:
+        TARGET_PATH: ${{ steps.calculate.outputs.kyma_cli_path }}
 branding:
   icon: "download"
   color: "blue"
