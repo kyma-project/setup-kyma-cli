@@ -4,10 +4,10 @@ inputs:
   #cluster authentication via an OIDC connection
   api-server-url:
     description: "Kubernetes API server URL of the Kyma cluster"
-    required: false
+    required: true
   ca-crt:
     description: "base64-encoded CA certificate for the API server"
-    required: false
+    required: true
   audience:
     description: "OIDC audience"
     required: false
@@ -27,14 +27,6 @@ runs:
       if: ${{ inputs.kubeconfig == '' }}
       shell: bash
       run: |
-        REQUIRED_ENV_VARIABLES=('AUDIENCE' 'API_SERVER_URL' 'CA_CRT')
-        for VAR in "${REQUIRED_ENV_VARIABLES[@]}"; do
-          if [ -z "${!VAR}" ]; then
-            echo "${VAR} is undefined"
-            exit 1
-          fi
-        done
-
         generate_flags=()
         generate_flags+=("--audience" "${AUDIENCE}")
         generate_flags+=("--server" "${API_SERVER_URL}")
