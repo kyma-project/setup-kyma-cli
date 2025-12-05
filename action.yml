@@ -74,7 +74,7 @@ runs:
 
     - name: "Install Kyma CLI"
       id: install
-      if: steps.cache.outputs.cache-hit != 'true' || inputs.force == 'true' || inputs.version == 'nightly'
+      if: steps.cache.outputs.cache-hit != 'true' || inputs.force == 'true' || steps.calculate.outputs.kyma_cli_version == '0.0.0-dev'
       shell: bash
       run: |
         set -e
