@@ -197,8 +197,8 @@ runs:
         virtualservice_url=""
         if [[ "${EXPOSE}" == "true" ]]; then
           echo "waiting 30s for APIRule to be ready..."
-          kubectl wait --for=jsonpath='{.spec.hosts}' virtualservices.networking.istio.io -l "apirule.gateway.kyma-project.io/v1beta1=${NAME}.${NAMESPACE}" -n "${NAMESPACE}" --timeout=30s
-          virtualservice_url="$(kubectl get virtualservices.networking.istio.io  -n "${NAMESPACE}" -l "apirule.gateway.kyma-project.io/v1beta1=${NAME}.${NAMESPACE}" -o "jsonpath={.items[0].spec.hosts[]}")"
+          kubectl wait --for=jsonpath='{.spec.hosts}' virtualservices.networking.istio.io -l "apirule.gateway.kyma-project.io/name=${NAME}" -n "${NAMESPACE}" --timeout=30s
+          virtualservice_url="$(kubectl get virtualservices.networking.istio.io  -n "${NAMESPACE}" -l "apirule.gateway.kyma-project.io/name=${NAME}" -o "jsonpath={.items[0].spec.hosts[]}")"
           echo "url=${virtualservice_url}" >> $GITHUB_OUTPUT
 
           echo "# Application deployed :rocket:" >> $GITHUB_STEP_SUMMARY
