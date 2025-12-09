@@ -14,9 +14,8 @@ Use this action in a GitHub Actions workflow file as follows:
 ```yaml
 - uses: kyma-project/setup-kyma-cli/kubeconfig@v1
   with:
-    - api-server-url: server.url.example
-    - ca-crt: Y2EtY3J0IGNvbnRlbnQ=
-```
+    api-server-url: server.url.example
+    ca-crt: Y2EtY3J0IGNvbnRlbnQ=
 
 ## Inputs
 

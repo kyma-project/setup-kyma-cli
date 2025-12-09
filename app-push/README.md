@@ -14,8 +14,7 @@ Use this action in a GitHub Actions workflow file as follows:
 ```yaml
 - uses: kyma-project/setup-kyma-cli/app-push@v1
   with:
-    - name: my-app
-```
+    name: my-app
 
 ## Inputs
 
