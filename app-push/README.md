@@ -9,7 +9,7 @@ App push is an GitHub Action that pushes the application to the Kubernetes clust
 This action executes the `kyma app push` command.
 See the [`kyma app push` documentation](https://kyma-project.io/external-content/cli/docs/user/gen-docs/kyma_app_push.html) for information on how to use the command.
 
-This action can be used in a GitHub Actions workflow file as follows:
+Use this action in a GitHub Actions workflow file as follows:
 
 ```yaml
 - uses: kyma-project/setup-kyma-cli/app-push@v1
@@ -37,7 +37,7 @@ Suppresses non-essential output (prints only the URL of the pushed app, if expos
 
 ### `image`
 
-Pre-built image reference. Used if code-path or dockerfile not provided.
+Pre-built image reference. Used if code-path or Dockerfile is not provided.
 
 ### `image-pull-secret`
 
@@ -45,11 +45,11 @@ Name of the Kubernetes Secret with credentials to pull the image.
 
 ### `code-path`
 
-Path to app sources to build/push via kyma app push. Requires Docker Registry module..
+Path to app sources to build and push using `kyma app push`. It requires the Docker Registry module.
 
 ### `dockerfile`
 
-Custom Dockerfile path (if using Docker build path in kyma CLI)..
+A custom Dockerfile path (if using Docker build path in Kyma CLI).
 
 ### `dockerfile-build-arg`
 
@@ -85,7 +85,7 @@ Environment variables, separated by semicolons, for the app in format NAME=VALUE
 
 ### `env-from-configmap`
 
-Environment variables for the app, separated by semicolons, loaded from a ConfigMap in format `ENV_NAME=RESOURCE:RESOURCE_KEY` for a single key or` RESOURCE[:ENVS_PREFIX]` to fetch all keys.
+Environment variables for the app, separated by semicolons, loaded from a ConfigMap in format `ENV_NAME=RESOURCE:RESOURCE_KEY` for a single key or `RESOURCE[:ENVS_PREFIX]` to fetch all keys.
 
 ### `env-from-file`
 

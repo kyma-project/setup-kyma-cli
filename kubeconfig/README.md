@@ -9,7 +9,7 @@ App push is an GitHub Action that generates kubeconfig with a Service Account-ba
 This action executes the `kyma alpha kubeconfig generate` command.
 See the [`kyma alpha kubeconfig generate` documentation](https://kyma-project.io/external-content/cli/docs/user/gen-docs/kyma_alpha_kubeconfig_generate.html) for information on how to use the command.
 
-This action can be used in a GitHub Actions workflow file as follows:
+Use this action in a GitHub Actions workflow file as follows:
 
 ```yaml
 - uses: kyma-project/setup-kyma-cli/kubeconfig@v1
