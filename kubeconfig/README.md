@@ -16,6 +16,7 @@ Use this action in a GitHub Actions workflow file as follows:
   with:
     api-server-url: server.url.example
     ca-crt: Y2EtY3J0IGNvbnRlbnQ=
+```
 
 ## Inputs
 
