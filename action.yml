@@ -61,14 +61,17 @@ runs:
           KYMA_CLI_VERSION="$(curl -L \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            ${{ steps.choose_token.outputs.flag }} \
-            https://api.github.com/repos/kyma-project/cli/releases | jq -r '[.[] | select(.name != "0.0.0-dev")][0].name')"
+            https://api.github.com/repos/kyma-project/cli/releases)"
+          echo $KYMA_CLI_VERSION
+          KYMA_CLI_VERSION="$(echo $KYMA_CLI_VERSION | jq -r '[.[] | select(.name != "0.0.0-dev")][0].name')"
         elif [[ "${KYMA_CLI_VERSION}" == "stable" ]]; then
           KYMA_CLI_VERSION="$(curl -L \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             ${{ steps.choose_token.outputs.flag }} \
-            https://api.github.com/repos/kyma-project/cli/releases/latest | jq -r '.name')"
+            https://api.github.com/repos/kyma-project/cli/releases/latest)"
+          echo $KYMA_CLI_VERSION
+          KYMA_CLI_VERSION="$(echo $KYMA_CLI_VERSION | jq -r '.name')"
         elif [[ "${KYMA_CLI_VERSION}" == "nightly" ]]; then
           KYMA_CLI_VERSION="0.0.0-dev"
         fi
