@@ -63,7 +63,7 @@ runs:
             -H "X-GitHub-Api-Version: 2022-11-28" \
             https://api.github.com/repos/kyma-project/cli/releases)"
           
-          if [[ "$( echo $CURL_OUTPUT | jq .message)" != "" ]]; then
+          if [[ "$( echo $CURL_OUTPUT | jq .message 2>/dev/null)" != "" ]]; then
             echo "Error fetching releases: $(echo $CURL_OUTPUT | jq -r .message)"
             exit 1
           else
@@ -75,7 +75,7 @@ runs:
             -H "X-GitHub-Api-Version: 2022-11-28" \
             ${{ steps.choose_token.outputs.flag }} \
             https://api.github.com/repos/kyma-project/cli/releases/latest)"
-          if [[ "$( echo $CURL_OUTPUT | jq .message)" != "" ]]; then
+          if [[ "$( echo $CURL_OUTPUT | jq .message 2>/dev/null)" != "" ]]; then
             echo "Error fetching latest release: $(echo $CURL_OUTPUT | jq -r .message)"
             exit 1
           else
