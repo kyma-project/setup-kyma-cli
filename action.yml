@@ -25,20 +25,11 @@ runs:
       shell: bash
       run: |
         if [[ -n "${{ inputs.token }}" ]]; then
-          echo "Challanging provided token"
-          curl_output="$(curl -L \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ inputs.token }}" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            https://api.github.com/)"
-          
-          if [[ "$(echo "$curl_output" | jq -r '.message')" == "Bad credentials" ]]; then
-            echo "Provided token is invalid"
-          else
-            echo "Provided token is valid"
-            echo "flag=-H \"Authorization: Bearer ${{ inputs.token }}\" >> $GITHUB_ENV"
-            exit 0
-          fi
+          echo "Using provided token"
+          echo "flag=-H \"Authorization: Bearer ${{ inputs.token }}\" >> $GITHUB_OUTPUT"
+          exit 0
+        else
+          echo "No token provided"
         fi
 
         if [[ -n "${{ github.token }}" ]]; then
@@ -53,7 +44,7 @@ runs:
             echo "GITHUB_TOKEN is invalid"
           else
             echo "GITHUB_TOKEN is valid"
-            echo "flag=-H \"Authorization: Bearer ${{ github.token }}\" >> $GITHUB_ENV"
+            echo "flag=-H \"Authorization: Bearer ${{ github.token }}\" >> $GITHUB_OUTPUT"
             exit 0
           fi
         fi
