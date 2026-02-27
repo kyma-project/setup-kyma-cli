@@ -34,7 +34,7 @@ runs:
 
         if [[ -n "${{ github.token }}" ]]; then
           echo "Challanging GITHUB_TOKEN"
-          curl_output="$(curl -L \
+          curl_output="$(curl -L -s \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ github.token }}" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
@@ -58,20 +58,29 @@ runs:
         KYMA_CLI_VERSION="${{ inputs.version }}"
 
         if [[ -z "${KYMA_CLI_VERSION}" || "${KYMA_CLI_VERSION}" == "latest" ]]; then
-          KYMA_CLI_VERSION="$(curl -L \
+          CURL_OUTPUT="$(curl -L -s \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             https://api.github.com/repos/kyma-project/cli/releases)"
-          echo $KYMA_CLI_VERSION
-          KYMA_CLI_VERSION="$(echo $KYMA_CLI_VERSION | jq -r '[.[] | select(.name != "0.0.0-dev")][0].name')"
+          
+          if [[ "$( echo $CURL_OUTPUT | jq .message)" != "" ]]; then
+            echo "Error fetching releases: $(echo $CURL_OUTPUT | jq -r .message)"
+            exit 1
+          else
+            KYMA_CLI_VERSION="$(echo $CURL_OUTPUT | jq -r '[.[] | select(.name != "0.0.0-dev")][0].name')"
+          fi
         elif [[ "${KYMA_CLI_VERSION}" == "stable" ]]; then
-          KYMA_CLI_VERSION="$(curl -L \
+          CURL_OUTPUT="$(curl -L -s \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             ${{ steps.choose_token.outputs.flag }} \
             https://api.github.com/repos/kyma-project/cli/releases/latest)"
-          echo $KYMA_CLI_VERSION
-          KYMA_CLI_VERSION="$(echo $KYMA_CLI_VERSION | jq -r '.name')"
+          if [[ "$( echo $CURL_OUTPUT | jq .message)" != "" ]]; then
+            echo "Error fetching latest release: $(echo $CURL_OUTPUT | jq -r .message)"
+            exit 1
+          else
+            KYMA_CLI_VERSION="$(echo $CURL_OUTPUT | jq -r '.name')"
+          fi
         elif [[ "${KYMA_CLI_VERSION}" == "nightly" ]]; then
           KYMA_CLI_VERSION="0.0.0-dev"
         fi
@@ -137,11 +146,18 @@ runs:
 
         CLI_TMPDIR=cli-$(date "+%Y-%m-%d_%H_%M_%S")
         mkdir -p "${CLI_TMPDIR}"
-        curl -L \
+        DOWNLOAD_HTTP_CODE=$(curl -L -s \
           -H "Accept: application/vnd.github+json" \
           -H "X-GitHub-Api-Version: 2022-11-28" \
           ${{ steps.choose_token.outputs.flag }} \
-          "https://github.com/kyma-project/cli/releases/download/${KYMA_CLI_VERSION}/${filename}" > "${CLI_TMPDIR}/cli.${EXT}"
+          "https://github.com/kyma-project/cli/releases/download/${KYMA_CLI_VERSION}/${filename}" \
+          -o "${CLI_TMPDIR}/cli.${EXT}" -w "%{http_code}")
+
+        if [[ "${DOWNLOAD_HTTP_CODE}" -ne 200 ]]; then
+          echo "Failed to download Kyma CLI. HTTP status code: ${DOWNLOAD_HTTP_CODE}"
+          rm -rf "${CLI_TMPDIR}"
+          exit 1
+        fi
 
         if [[ "${OS}" == "Windows" ]]; then
           unzip "${CLI_TMPDIR}/cli.zip" -d "${CLI_TMPDIR}"
