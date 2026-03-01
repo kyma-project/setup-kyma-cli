@@ -61,6 +61,7 @@ runs:
           CURL_OUTPUT="$(curl -L -s \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
+            ${{ steps.choose_token.outputs.flag }} \
             https://api.github.com/repos/kyma-project/cli/releases)"
           
           if [[ "$( echo $CURL_OUTPUT | jq .message 2>/dev/null)" != "" ]]; then
