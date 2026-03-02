@@ -26,7 +26,7 @@ runs:
       run: |
         if [[ -n "${{ inputs.token }}" ]]; then
           echo "Using provided token"
-          echo "flag=-H \"Authorization: Bearer ${{ inputs.token }}\" >> $GITHUB_OUTPUT"
+          echo "flag=\"-H\" \"Authorization: Bearer ${{ inputs.token }}\"" >> $GITHUB_OUTPUT
           exit 0
         else
           echo "No token provided"
@@ -44,7 +44,7 @@ runs:
             echo "GITHUB_TOKEN is invalid"
           else
             echo "GITHUB_TOKEN is valid"
-            echo "flag=-H \"Authorization: Bearer ${{ github.token }}\" >> $GITHUB_OUTPUT"
+            echo "flag=\"-H\" \"Authorization: Bearer ${{ github.token }}\"" >> $GITHUB_OUTPUT
             exit 0
           fi
         fi
@@ -56,12 +56,13 @@ runs:
       shell: bash
       run: |
         KYMA_CLI_VERSION="${{ inputs.version }}"
+        AUTH_FLAG=(${{ steps.choose_token.outputs.flag }})
 
         if [[ -z "${KYMA_CLI_VERSION}" || "${KYMA_CLI_VERSION}" == "latest" ]]; then
           CURL_OUTPUT="$(curl -L -s \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            ${{ steps.choose_token.outputs.flag }} \
+            "${AUTH_FLAG[@]}" \
             https://api.github.com/repos/kyma-project/cli/releases)"
           
           if [[ "$( echo $CURL_OUTPUT | jq .message 2>/dev/null)" != "" ]]; then
@@ -74,7 +75,7 @@ runs:
           CURL_OUTPUT="$(curl -L -s \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            ${{ steps.choose_token.outputs.flag }} \
+            "${AUTH_FLAG[@]}" \
             https://api.github.com/repos/kyma-project/cli/releases/latest)"
           if [[ "$( echo $CURL_OUTPUT | jq .message 2>/dev/null)" != "" ]]; then
             echo "Error fetching latest release: $(echo $CURL_OUTPUT | jq -r .message)"
@@ -131,6 +132,7 @@ runs:
         set -e
 
         KYMA_CLI_VERSION="${{ steps.calculate.outputs.kyma_cli_version }}"
+        AUTH_FLAG=(${{ steps.choose_token.outputs.flag }})
 
         OS="$(uname -s)"
         # if OS contains MINGW prefix then change OS to Windows
@@ -150,7 +152,7 @@ runs:
         DOWNLOAD_HTTP_CODE=$(curl -L -s \
           -H "Accept: application/vnd.github+json" \
           -H "X-GitHub-Api-Version: 2022-11-28" \
-          ${{ steps.choose_token.outputs.flag }} \
+          "${AUTH_FLAG[@]}" \
           "https://github.com/kyma-project/cli/releases/download/${KYMA_CLI_VERSION}/${filename}" \
           -o "${CLI_TMPDIR}/cli.${EXT}" -w "%{http_code}")
 
