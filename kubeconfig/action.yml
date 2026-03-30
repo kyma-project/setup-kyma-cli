@@ -15,6 +15,7 @@ inputs:
   id-token-auto-refresh:
     description: "Generates a kubeconfig with exec-based ID token auto-refresh"
     required: false
+    default: "false"
 outputs:
   kubeconfig:
     description: "generated kubeconfig"
@@ -34,7 +35,9 @@ runs:
         generate_flags+=("--audience" "${AUDIENCE}")
         generate_flags+=("--server" "${API_SERVER_URL}")
         generate_flags+=("--certificate-authority-data" "${CA_CRT}")
-        generate_flags+=("--id-token-auto-refresh" "${ID_TOKEN_AUTO_REFRESH}")
+        if [[ "${ID_TOKEN_AUTO_REFRESH}" == "true" ]]; then
+          generate_flags+=("--id-token-auto-refresh" "${ID_TOKEN_AUTO_REFRESH}")
+        fi
         kubeconfig_path="action_kubeconfig.yaml"
         generate_flags+=("--output" "${kubeconfig_path}")
         kyma alpha kubeconfig generate "${generate_flags[@]}"
