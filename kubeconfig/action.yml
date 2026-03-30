@@ -36,7 +36,7 @@ runs:
         generate_flags+=("--server" "${API_SERVER_URL}")
         generate_flags+=("--certificate-authority-data" "${CA_CRT}")
         if [[ "${ID_TOKEN_AUTO_REFRESH}" == "true" ]]; then
-          generate_flags+=("--id-token-auto-refresh" "${ID_TOKEN_AUTO_REFRESH}")
+          generate_flags+=("--id-token-auto-refresh")
         fi
         kubeconfig_path="action_kubeconfig.yaml"
         generate_flags+=("--output" "${kubeconfig_path}")
