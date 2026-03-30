@@ -12,6 +12,10 @@ inputs:
     description: "OIDC audience"
     required: false
     default: ""
+  id-token-auto-refresh:
+    description: "Generates a kubeconfig with exec-based ID token auto-refresh"
+    required: false
+    default: "false"
 outputs:
   kubeconfig:
     description: "generated kubeconfig"
@@ -31,6 +35,9 @@ runs:
         generate_flags+=("--audience" "${AUDIENCE}")
         generate_flags+=("--server" "${API_SERVER_URL}")
         generate_flags+=("--certificate-authority-data" "${CA_CRT}")
+        if [[ "${ID_TOKEN_AUTO_REFRESH}" == "true" ]]; then
+          generate_flags+=("--id-token-auto-refresh")
+        fi
         kubeconfig_path="action_kubeconfig.yaml"
         generate_flags+=("--output" "${kubeconfig_path}")
         kyma alpha kubeconfig generate "${generate_flags[@]}"
@@ -45,3 +52,4 @@ runs:
         AUDIENCE: "${{ inputs.audience }}"
         API_SERVER_URL: "${{ inputs.api-server-url }}"
         CA_CRT: "${{ inputs.ca-crt }}"
+        ID_TOKEN_AUTO_REFRESH: "${{ inputs.id-token-auto-refresh }}"
