@@ -27,6 +27,7 @@ jobs:
           audience: "kyma-cli"
           api-server-url: "${{ secrets.SERVER }}"
           ca-crt: "${{ secrets.CA_CRT }}"
+          id-token-auto-refresh: "true"
       - name: "generate unique deployment name"
         id: name
         shell: bash
