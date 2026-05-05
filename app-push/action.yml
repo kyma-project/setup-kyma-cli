@@ -74,6 +74,9 @@ inputs:
   insecure:
     description: "Disables SecurityContext configuration for the app deployment"
     required: false
+  append-output-path:
+    description: "Optional path to append to the deployed app URL in the url output and step summary (e.g. /swagger, /api/docs). Only used when expose is true."
+    required: false
   # array separated by semicolon
   mount-service-binding-secret:
     description: "Mounts Secret, separated by semicolons, as service binding at /bindings/secret-<NAME> (readOnly)"
@@ -199,10 +202,11 @@ runs:
           echo "waiting 30s for APIRule to be ready..."
           kubectl wait --for=jsonpath='{.spec.hosts}' virtualservices.networking.istio.io -l "apirule.gateway.kyma-project.io/name=${NAME}" -n "${NAMESPACE}" --timeout=30s
           virtualservice_url="$(kubectl get virtualservices.networking.istio.io  -n "${NAMESPACE}" -l "apirule.gateway.kyma-project.io/name=${NAME}" -o "jsonpath={.items[0].spec.hosts[]}")"
-          echo "url=${virtualservice_url}" >> $GITHUB_OUTPUT
+          app_url="https://${virtualservice_url}${APPEND_OUTPUT_PATH}"
+          echo "url=${app_url}" >> $GITHUB_OUTPUT
 
           echo "# Application deployed :rocket:" >> $GITHUB_STEP_SUMMARY
-          echo "App URL: [https://${virtualservice_url}](https://${virtualservice_url}) " >> $GITHUB_STEP_SUMMARY
+          echo "App URL: [${app_url}](${app_url}) " >> $GITHUB_STEP_SUMMARY
         fi
 
         rm "${kubeconfig_path}"
@@ -233,3 +237,4 @@ runs:
         #various
         INSECURE: "${{ inputs.insecure }}"
         MOUNT_SERVICE_BINDING_SECRET: "${{ inputs.mount-service-binding-secret }}"
+        APPEND_OUTPUT_PATH: "${{ inputs.append-output-path }}"
