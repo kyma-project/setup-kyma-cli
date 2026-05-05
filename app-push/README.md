@@ -99,6 +99,10 @@ Environment variables for the app, separated by semicolons, loaded from a Secret
 
 Disables SecurityContext configuration for the app deployment.
 
+### `append-output-path`
+
+Optional path to append to the deployed app URL in the `url` output and the step summary (for example, `/swagger` or `/api/docs`). Only used when `expose` is `true`.
+
 ### `mount-service-binding-secret`
 
 Mounts Secret, separated by semicolons, as service binding at `/bindings/secret-<NAME>` (readOnly).
@@ -107,4 +111,4 @@ Mounts Secret, separated by semicolons, as service binding at `/bindings/secret-
 
 ### `url`
 
-A resolved HTTPS URL of the deployed app.
+A resolved HTTPS URL of the deployed app, including the `append-output-path` if set.
