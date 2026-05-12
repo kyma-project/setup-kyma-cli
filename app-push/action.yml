@@ -39,6 +39,9 @@ inputs:
   dockerfile-context:
     description: "Context path for building Dockerfile (defaults to the current working directory)"
     required: false
+  build-tag:
+    description: "Custom Docker image tag used when building from source (--code-path or --dockerfile). Mutually exclusive with image."
+    required: false
   # istio and networking
   expose:
     description: "Expose app via APIRule"
@@ -132,6 +135,9 @@ runs:
         if [[ -n "${DOCKERFILE_CONTEXT}" ]]; then
           push_flags+=("--dockerfile-context" "${DOCKERFILE_CONTEXT}")
         fi
+        if [[ -n "${BUILD_TAG}" ]]; then
+          push_flags+=("--build-tag" "${BUILD_TAG}")
+        fi
         # istio and networking
         if [[ "${EXPOSE}" == "true" ]]; then
           push_flags+=("--expose")
@@ -223,6 +229,7 @@ runs:
         DOCKERFILE: "${{ inputs.dockerfile }}"
         DOCKERFILE_BUILD_ARGS: "${{ inputs.dockerfile-build-arg }}"
         DOCKERFILE_CONTEXT: "${{ inputs.dockerfile-context }}"
+        BUILD_TAG: "${{ inputs.build-tag }}"
         #istio and networking
         EXPOSE: "${{ inputs.expose }}"
         ISTIO_INJECT: "${{ inputs.istio-inject }}"
