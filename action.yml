@@ -118,7 +118,7 @@ runs:
         TARGET_DIR: ${{ inputs.target-dir }}
     - name: Kyma CLI cache"
       id: cache
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         path: |
           ${{ steps.calculate.outputs.kyma_cli_path }}
